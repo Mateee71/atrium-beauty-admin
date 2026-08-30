@@ -1,0 +1,267 @@
+datasource db {
+  provider = "postgresql"
+}
+ 
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+model User {
+  id        String       @id @default(uuid())
+  name      String?
+  email     String       @unique
+  password  String?
+  emailVerified DateTime?
+  image     String?
+
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+
+  profile   UserProfile? @relation(name: "UserToUserProfile")
+  profileId String?      @unique
+
+  appointments Appointment[]
+  availability UserAvailability?
+
+  accounts  Account[]
+  sessions  Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserProfile {
+  userId  String   @id
+  phone   String?
+  bio     String?
+
+  user User @relation(name: "UserToUserProfile", fields: [userId], references: [id])
+}
+
+model Role {
+  id       String @id @default(uuid())
+  name     String @unique
+  longName String?
+  icon String?
+
+  users    User[]
+  categories Category[]
+}
+ 
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([provider, providerAccountId])
+}
+ 
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
+}
+
+
+model Customer {
+  id          String        @id @default(uuid())
+  name        String
+  email       String
+  phone       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  appointments Appointment[]
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+
+  roleId    String?
+  role      Role?     @relation(fields: [roleId], references: [id])
+
+  services  Service[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Appointment {
+  id        String     @id @default(uuid())
+  date      DateTime
+  status    String     @default("pending")
+  note      String?
+  customerId String
+  customer  Customer   @relation(fields: [customerId], references: [id])
+
+  stylistId  String?
+  stylist    User?       @relation(fields: [stylistId], references: [id])
+
+  services  Service[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Service {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal?      @db.Decimal(10,2)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+
+  appointments Appointment[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+}
+
+model UserAvailability {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  days      AvailabilityDay[]
+  overrides AvailabilityOverride[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AvailabilityDay {
+  id String @id @default(uuid())
+
+  dayOfWeek Int
+  enabled   Boolean @default(false)
+
+  userAvailabilityId String
+  userAvailability   UserAvailability @relation(fields: [userAvailabilityId], references: [id], onDelete: Cascade)
+
+  intervals AvailabilityInterval[]
+}
+
+model AvailabilityInterval {
+  id String @id @default(uuid())
+
+  startTime String
+  endTime   String
+
+  dayId String
+  day   AvailabilityDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+}
+
+model AvailabilityOverride {
+  id String @id @default(uuid())
+
+  userAvailabilityId String
+  userAvailability   UserAvailability @relation(fields: [userAvailabilityId], references: [id], onDelete: Cascade)
+
+  date     DateTime
+  disabled Boolean @default(false)
+
+  intervals AvailabilityOverrideInterval[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userAvailabilityId, date])
+}
+
+model AvailabilityOverrideInterval {
+  id String @id @default(uuid())
+
+  startTime String
+  endTime   String
+
+  overrideId String
+  override   AvailabilityOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
+}
+
+model AvailabilityTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  isDefault Boolean  @default(false)
+
+  days      AvailabilityTemplateDay[]
+  overrides AvailabilityTemplateOverride[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AvailabilityTemplateDay {
+  id String @id @default(uuid())
+
+  dayOfWeek Int
+  enabled   Boolean @default(false)
+
+  templateId String
+  template   AvailabilityTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  intervals AvailabilityTemplateInterval[]
+}
+
+model AvailabilityTemplateInterval {
+  id String @id @default(uuid())
+
+  startTime String
+  endTime   String
+
+  dayId String
+  day   AvailabilityTemplateDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+}
+
+model AvailabilityTemplateOverride {
+  id String @id @default(uuid())
+
+  templateId String
+  template   AvailabilityTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  date     DateTime
+  disabled Boolean @default(false)
+
+  intervals AvailabilityTemplateOverrideInterval[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([templateId, date])
+}
+
+model AvailabilityTemplateOverrideInterval {
+  id String @id @default(uuid())
+
+  startTime String
+  endTime   String
+
+  overrideId String
+  override   AvailabilityTemplateOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
+}
