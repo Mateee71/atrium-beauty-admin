@@ -1,5 +1,10 @@
 # Atrium Beauty Admin
 
+> [!IMPORTANT]
+> Ez a repository kizárólag saját fejlesztésű, portfólió- és tesztprojekt.
+> Nem valós, éles rendszer, nem használható valódi időpontfoglalásra vagy üzleti működésre.
+> A projektben megjelenő felhasználók, időpontok és statisztikák teszt- vagy mintaadatok.
+
 Modern időpontfoglalási és szalonkezelő rendszer az Atrium Beauty számára.
 
 ## Funkciók
