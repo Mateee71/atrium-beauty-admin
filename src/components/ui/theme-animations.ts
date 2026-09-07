@@ -184,27 +184,46 @@ export const createAnimation = (
     }
   }
 
+  const clipPosition =
+    start === "top-left"
+      ? "0% 0%"
+      : start === "top-right"
+        ? "100% 0%"
+        : start === "bottom-left"
+          ? "0% 100%"
+          : start === "bottom-right"
+            ? "100% 100%"
+            : "50% 50%"
+
   return {
-    name: `${variant}-${start}`,
+    name: `theme-${start}`,
     css: `
-      ::view-transition-group(root) {
-        animation-timing-function: var(--expo-out);
+      ::view-transition-image-pair(root) {
+        isolation: isolate;
       }
-      ::view-transition-new(root) {
-        mask: url('${svg}') ${start.replace("-", " ")} / 0 no-repeat;
-        mask-origin: content-box;
-        animation: scale-${start} 1s;
-        transform-origin: ${transformOrigin};
-      }
+
       ::view-transition-old(root),
-      .dark::view-transition-old(root) {
-        animation: scale-${start} 1s;
-        transform-origin: ${transformOrigin};
-        z-index: -1;
+      ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
       }
-      @keyframes scale-${start} {
+
+      ::view-transition-old(root) {
+        z-index: 1;
+      }
+
+      ::view-transition-new(root) {
+        z-index: 2;
+        animation: reveal-${start} 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      @keyframes reveal-${start} {
+        from {
+          clip-path: circle(0 at ${clipPosition});
+        }
+
         to {
-          mask-size: 350vmax;
+          clip-path: circle(150vmax at ${clipPosition});
         }
       }
     `,

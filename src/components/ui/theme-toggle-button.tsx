@@ -3,8 +3,8 @@
 import React from "react"
 import { MoonIcon, SunIcon } from "lucide-react"
 import { useTheme } from "next-themes"
-
 import { Button } from "@/components/ui/button"
+import { flushSync } from "react-dom";
 
 import {
   AnimationStart,
@@ -25,7 +25,7 @@ export default function ThemeToggleButton({
   showLabel = false,
   url = "",
 }: ThemeToggleAnimationProps) {
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
 
   const styleId = "theme-transition-styles"
 
@@ -34,9 +34,6 @@ export default function ThemeToggleButton({
 
     let styleElement = document.getElementById(styleId) as HTMLStyleElement
 
-    console.log("style ELement", styleElement)
-    console.log("name", name)
-
     if (!styleElement) {
       styleElement = document.createElement("style")
       styleElement.id = styleId
@@ -44,28 +41,27 @@ export default function ThemeToggleButton({
     }
 
     styleElement.textContent = css
-
-    console.log("content updated")
   }, [])
 
   const toggleTheme = React.useCallback(() => {
-    const animation = createAnimation(variant, start, url)
+    const animation = createAnimation(variant, start, url);
+    updateStyles(animation.css, animation.name);
 
-    updateStyles(animation.css, animation.name)
+    if (typeof window === "undefined") return;
 
-    if (typeof window === "undefined") return
-
-    const switchTheme = () => {
-      setTheme(theme === "light" ? "dark" : "light")
-    }
+    const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
 
     if (!document.startViewTransition) {
-      switchTheme()
-      return
+      setTheme(nextTheme);
+      return;
     }
 
-    document.startViewTransition(switchTheme)
-  }, [theme, setTheme])
+    document.startViewTransition(() => {
+      flushSync(() => {
+        setTheme(nextTheme);
+      });
+    });
+  }, [resolvedTheme, setTheme, variant, start, url, updateStyles]);
 
   return (
     <Button
