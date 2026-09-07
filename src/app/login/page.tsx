@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { User, Lock, TriangleAlert } from "lucide-react";
-import { LOGO, LOGO_BLACK, SITE_NAME } from "@/config";
+import { LOGO, LOGO_BLACK, SITE_NAME, SLOGAN } from "@/config";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTheme } from "next-themes";
@@ -14,6 +14,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
+
+import loginImage from "@/assets/images/salon_pink.png";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -30,23 +32,55 @@ export default function LoginPage() {
   const isDark = mounted && resolvedTheme === "dark";
 
   const background = isDark
-    ? "radial-gradient(125% 125% at 50% 100%, #000000 40%, #350136 100%)"
-    : "radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #ec4899 100%)";
+    ? "#000000"
+    : "#ffffff";
 
   return (
-    <div
-      className="relative min-h-screen w-full flex items-center justify-center"
-      style={{ background }}
-      suppressHydrationWarning
-    >
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggleButton />
+    <div className="grid min-h-screen w-full md:grid-cols-2">
+      <div className="hidden min-h-screen p-4 md:block">
+        <div className="relative min-h-[calc(100vh-2rem)] overflow-hidden rounded-lg shadow-sm ring-1 ring-black/5">
+          <Image
+            src={loginImage}
+            alt="Atrium Beauty szalon"
+            fill
+            priority
+            sizes="50vw"
+            className="object-cover"
+          />
+
+          <div className="absolute inset-0 bg-black/25" />
+
+          <div className="absolute inset-0 z-10 flex flex-col p-8 text-white lg:p-10">
+            <div className="flex items-center gap-3">
+              <Image
+                src={LOGO}
+                alt="Atrium Beauty logó"
+                className="h-12 w-12 object-contain"
+              />
+              <span className="text-xl font-semibold">
+                {SITE_NAME}
+              </span>
+            </div>
+            <h1 className="mt-20 max-w-full text-4xl font-semibold leading-tight lg:text-5xl">
+              {SLOGAN}
+            </h1>
+          </div>
+        </div>
       </div>
 
-      <div className="flex items-center justify-center min-h-screen w-full max-w-sm">
-        <Card className="w-full max-w-md rounded-2xl shadow-2xl">
+      <div
+        className="relative flex min-h-screen items-center justify-center px-4 py-8"
+        style={{ background }}
+        suppressHydrationWarning
+      >
+        <div className="absolute right-4 top-4 z-50">
+          <ThemeToggleButton />
+        </div>
+
+        <div className="flex w-full max-w-sm items-center justify-center">
+        <Card className="w-full max-w-md border-none shadow-none">
           <CardHeader className="pb-2">
-            <div className="flex flex-col items-start mb-2">
+            <div className="flex flex-col items-center mb-2">
               <div className="flex flex-row items-center gap-3">
                 <Image
                   src={isDark ? LOGO : LOGO_BLACK}
@@ -219,5 +253,6 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  </div>
   );
 }
